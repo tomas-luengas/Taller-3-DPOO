@@ -214,6 +214,8 @@ public class Aerolinea
     public void cargarAerolinea( String archivo, String tipoArchivo ) throws TipoInvalidoException, IOException, InformacionInconsistenteException
     {
         // TODO implementar
+    	IPersistenciaAerolinea carga = CentralPersistencia.getPersistenciaAerolinea(tipoArchivo);
+        carga.cargarAerolinea(archivo, this);
     }
 
     /**
@@ -226,6 +228,8 @@ public class Aerolinea
     public void salvarAerolinea( String archivo, String tipoArchivo ) throws TipoInvalidoException, IOException
     {
         // TODO implementar
+    	IPersistenciaAerolinea salvar = CentralPersistencia.getPersistenciaAerolinea( tipoArchivo );
+    	salvar.salvarAerolinea( archivo, this );
     }
 
     /**
@@ -275,7 +279,51 @@ public class Aerolinea
      */
     public void programarVuelo( String fecha, String codigoRuta, String nombreAvion ) throws Exception
     {
-        // TODO Implementar el método
+        if (fecha == null || fecha.isBlank()) {
+            throw new InformacionInconsistenteException("Fecha requerida.");
+        }
+        if (codigoRuta == null || codigoRuta.isBlank()) {
+            throw new InformacionInconsistenteException("Código de ruta requerido.");
+        }
+        if (nombreAvion == null || nombreAvion.isBlank()) {
+            throw new InformacionInconsistenteException("Nombre de avión requerido.");
+        }
+
+        Ruta rutaSeleccionada = getRuta(codigoRuta);
+        if (rutaSeleccionada == null) {
+            throw new InformacionInconsistenteException("La ruta no existe: " + codigoRuta);
+        }
+
+        Avion avionSeleccionado = null;
+        for (Avion elemento : aviones) {
+            if (elemento.getNombre().equals(nombreAvion)) {
+                avionSeleccionado = elemento; // sin break
+            }
+        }
+        if (avionSeleccionado == null) {
+            throw new InformacionInconsistenteException("El avión no existe: " + nombreAvion);
+        }
+
+        int inicioNueva = Ruta.getHoras(rutaSeleccionada.getHoraSalida())  * 60
+                        + Ruta.getMinutos(rutaSeleccionada.getHoraSalida());
+        int finalNueva  = inicioNueva + rutaSeleccionada.getDuracion("");
+
+        for (Vuelo v : vuelos) {
+            boolean mismoAvion = v.getAvion().getNombre().equals(nombreAvion);
+            boolean mismaFecha = v.getFecha().equals(fecha);
+            if (mismoAvion && mismaFecha) {
+                int inicioVieja = Ruta.getHoras(v.getRuta().getHoraSalida())  * 60 + Ruta.getMinutos(v.getRuta().getHoraSalida());
+                int finalVieja  = inicioVieja + v.getRuta().getDuracion("");
+
+                boolean seTraslapan = (inicioNueva < finalVieja) && (inicioVieja < finalNueva);
+                if (seTraslapan) {
+                    throw new InformacionInconsistenteException("El avión ya está ocupado en ese intervalo.");
+                }
+            }
+        }
+
+        Vuelo nuevo = new Vuelo(rutaSeleccionada, fecha, avionSeleccionado);
+        vuelos.add(nuevo);
     }
 
     /**
@@ -307,6 +355,12 @@ public class Aerolinea
     public void registrarVueloRealizado( String fecha, String codigoRuta )
     {
         // TODO Implementar el método
+    	 Vuelo vuelo = getVuelo(codigoRuta, fecha);
+    	    if (vuelo != null) {
+    	        for (Cliente elemento : clientes.values()) {
+    	            elemento.usarTiquetes(vuelo);
+    	        }
+    	    }
     }
 
     /**
@@ -317,7 +371,20 @@ public class Aerolinea
     public String consultarSaldoPendienteCliente( String identificadorCliente )
     {
         // TODO Implementar el método
-        return "";
+    	int total = 0;
+    	String respuesta = null;
+
+        if (identificadorCliente != null && !identificadorCliente.isBlank()) {
+            for (Tiquete elemento : getTiquetes()) {
+                Cliente elementoCliente = elemento.getCliente();
+                boolean esCliente = (elementoCliente != null) && identificadorCliente.equals( elementoCliente.getIdentificador() );
+                if (esCliente && !elemento.esUsado()) {
+                    total += elemento.getTarifa();
+                }
+            }
+        }
+        respuesta = String.valueOf(total);
+        return respuesta;
     }
 
 }
