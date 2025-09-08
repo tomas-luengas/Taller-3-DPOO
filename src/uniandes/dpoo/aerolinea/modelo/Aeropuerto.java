@@ -24,13 +24,15 @@ public class Aeropuerto
 	
 
 	
-	public Aeropuerto(String nombre, String codigo, String nombreCiudad, double latitud, double longitud) throws AeropuertoDuplicadoException {
+	public Aeropuerto(String nombre, String codigo, String nombreCiudad, double latitud, double longitud) throws AeropuertoDuplicadoException, InformacionInconsistenteException {
 		if (codigosUtilizados.contains(codigo) == true) {
 			throw new AeropuertoDuplicadoException(codigo);
+		}
 		
 		if (nombre == null || nombre.isBlank()) { 
 			throw new InformacionInconsistenteException("Nombre necesario para operacion.");
 		}
+			
 		if (codigo == null || codigo.isBlank()) {
 			throw new InformacionInconsistenteException("Codigo necesario para la operacion.");
 		}
@@ -45,7 +47,6 @@ public class Aeropuerto
 		this.latitud = latitud;
 		this.longitud = longitud;
 	}
-	
 	
 	public String getNombre() {
 		return nombre;

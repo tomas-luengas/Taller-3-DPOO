@@ -189,12 +189,11 @@ public class Aerolinea
     public Collection<Tiquete> getTiquetes( )
     {
         // TODO implementar
-    	Collection<Tiquete> lstTodosTiquetes = new ArrayList<>();
-    	for (Vuelo elemento: vuelos) {
-    		lstTodosTiquetes.addAll(elemento.getTiquetes());
-    		
-    	}
-        return lstTodosTiquetes;
+    	Collection<Tiquete> todos = new ArrayList<>();
+        for (Vuelo elemento : vuelos) {
+            todos.addAll(elemento.getTiquetes());
+        }
+        return todos;
 
     }
 

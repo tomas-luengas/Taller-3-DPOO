@@ -9,9 +9,9 @@ public class ClienteCorporativo extends Cliente {
 	
     // TODO completar
     public static final String CORPORATIVO = "Corporativo";
-    public int GRANDE = 1;
-    public final int MEDIANO = 2;
-    public int PEQUEÑO = 3;
+    public static final int GRANDE = 1;
+    public static final int MEDIANO = 2;
+    public static final int PEQUEÑO = 3;
     
     private String nombreEmpresa;
     private int tamanoEmpresa;
