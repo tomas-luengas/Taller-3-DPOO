@@ -17,6 +17,10 @@ import uniandes.dpoo.aerolinea.persistencia.IPersistenciaAerolinea;
 import uniandes.dpoo.aerolinea.persistencia.IPersistenciaTiquetes;
 import uniandes.dpoo.aerolinea.persistencia.TipoInvalidoException;
 import uniandes.dpoo.aerolinea.tiquetes.Tiquete;
+import uniandes.dpoo.aerolinea.modelo.tarifas.CalculadoraTarifas;
+import uniandes.dpoo.aerolinea.modelo.tarifas.CalculadoraTarifasTemporadaBaja;
+import uniandes.dpoo.aerolinea.modelo.tarifas.CalculadoraTarifasTemporadaAlta;
+
 
 /**
  * En esta clase se organizan todos los aspectos relacionados con una Aerolínea.
@@ -343,8 +347,41 @@ public class Aerolinea
      */
     public int venderTiquetes( String identificadorCliente, String fecha, String codigoRuta, int cantidad ) throws VueloSobrevendidoException, Exception
     {
-        // TODO Implementar el método
-        return -1;
+    	if (identificadorCliente == null || identificadorCliente.isBlank()) {
+            throw new InformacionInconsistenteException("Identificador de cliente requerido.");
+        }
+        if (fecha == null || fecha.isBlank()) {
+            throw new InformacionInconsistenteException("Fecha requerida.");
+        }
+        if (codigoRuta == null || codigoRuta.isBlank()) {
+            throw new InformacionInconsistenteException("Código de ruta requerido.");
+        }
+        if (cantidad <= 0) {
+            throw new InformacionInconsistenteException("La cantidad debe ser mayor a 0.");
+        }
+
+        Cliente cliente = getCliente( identificadorCliente );
+        if (cliente == null) {
+            throw new InformacionInconsistenteException("El cliente no existe: " + identificadorCliente);
+        }
+
+        Vuelo vuelo = getVuelo( codigoRuta, fecha );
+        if (vuelo == null) {
+            throw new InformacionInconsistenteException("No existe el vuelo de la ruta " + codigoRuta + " en " + fecha);
+        }
+        int mes = 1;
+        boolean temporadaBaja = (mes >= 1 && mes <= 5) || (mes >= 9 && mes <= 11);
+
+        CalculadoraTarifas calculadora;
+        if (temporadaBaja) {
+            calculadora = new CalculadoraTarifasTemporadaBaja();
+        } else {
+            calculadora = new CalculadoraTarifasTemporadaAlta();
+        }
+
+        // Vender y retornar total
+        int total = vuelo.venderTiquetes( cliente, calculadora, cantidad );
+        return total;
     }
 
     /**
